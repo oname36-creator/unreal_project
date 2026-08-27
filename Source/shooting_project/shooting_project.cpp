@@ -4,3 +4,5 @@
 #include "Modules/ModuleManager.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, shooting_project, "shooting_project" );
+
+DEFINE_LOG_CATEGORY(TPS);

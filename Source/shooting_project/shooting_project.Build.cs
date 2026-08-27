@@ -7,8 +7,22 @@ public class shooting_project : ModuleRules
 	public shooting_project(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+
+        PublicIncludePaths.AddRange(
+           new string[] {
+                        "shooting_project" // 여러분 프로젝트 이름
+           }
+       );
+
+        PrivateIncludePaths.AddRange(
+            new string[] {
+            }
+        );
+
+        PublicDependencyModuleNames.AddRange(
+			new string[] {
+							"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" 
+							});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

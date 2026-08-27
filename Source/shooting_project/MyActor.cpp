@@ -15,6 +15,9 @@ AMyActor::AMyActor()
 void AMyActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//int32 Hp;
+	//FString Name = TEXT("이름"); // 문자열은 무조건 TEXT() 감싸서 2byte로 처리
 	
 }
 
