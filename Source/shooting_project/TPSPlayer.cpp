@@ -2,12 +2,16 @@
 
 
 #include "TPSPlayer.h"
+#include "Bullet.h"
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 ATPSPlayer::ATPSPlayer()
@@ -25,7 +29,8 @@ ATPSPlayer::ATPSPlayer()
 
 	springArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	springArmComp->SetupAttachment(RootComponent);
-	springArmComp->SetRelativeLocation(FVector(0,70,90));
+	//springArmComp->SetRelativeLocation(FVector(0,70,90));
+	springArmComp->SocketOffset = FVector(0,70,90);
 	springArmComp->TargetArmLength = 400;
 	springArmComp->bUsePawnControlRotation = true;
 	
@@ -34,6 +39,28 @@ ATPSPlayer::ATPSPlayer()
 	tpsCamComp->bUsePawnControlRotation = false;
 
 	bUseControllerRotationYaw = true;
+	
+	gunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMeshComp"));
+	gunMeshComp->SetupAttachment(GetMesh());
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempGunMesh(TEXT("'SkeletalMesh'/Game/Assets/MilitaryWeapSilver/Weapons/Assault_Rifle_A.Assault_Rifle_A"));
+	
+	if (TempGunMesh.Succeeded())
+	{
+		gunMeshComp->SetSkeletalMesh(TempGunMesh.Object);
+		gunMeshComp->SetRelativeLocation(FVector(-14, 11, 138));
+	}
+	
+	sniperGunComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SniperGunComp"));
+	
+	sniperGunComp->SetupAttachment(GetMesh());
+	
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempSniperMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/MilitaryWeapSilver/Weapons/Sniper_Rifle_A.Sniper_Rifle_A'"));
+	if (TempSniperMesh.Succeeded())
+	{
+		sniperGunComp->SetSkeletalMesh(TempSniperMesh.Object);
+		
+		sniperGunComp->SetRelativeLocation(FVector(-22, 31, 128));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -50,13 +77,28 @@ void ATPSPlayer::BeginPlay()
 			subsystem->AddMappingContext(imc_TPS, 0);
 		}
 	}
+	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);
+	bUsingGrenade =false;
+	ChangeToSniperGun(FInputActionValue());
 }
 
 // Called every frame
 void ATPSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	//카메라 거리, 캐릭터 거리 차
+	// 거리값 으로 메시 숨김처리
+	//FVector DistVector = _tpsCamComp->GetComponentLocation() - GetActorLocation();
+	//double Dist = DistVector.Size();
+	
+	//if (Dist > MeshVisibleDistance)
+	//{
+		//Get()->SetVisibility(false);
+	//}
+	//else
+	//{
+		//Get()->SetVisibility(true);
+	//}
 }
 
 // Called to bind functionality to input
@@ -69,8 +111,49 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	{
 		PlayerInput->BindAction(ia_Move, ETriggerEvent::Triggered, this, &ATPSPlayer::Input_Move);
 		PlayerInput->BindAction(ia_LookUp, ETriggerEvent::Triggered, this, &ATPSPlayer::Input_Look);
+		PlayerInput->BindAction(ia_Fire, ETriggerEvent::Started, this, &ATPSPlayer::InputFire);
+		PlayerInput->BindAction(ia_WPchange, ETriggerEvent::Started, this, &ATPSPlayer::WPChange);
+		PlayerInput->BindAction(ia_sniper, ETriggerEvent::Started, this, &ATPSPlayer::SniperAim);
+		PlayerInput->BindAction(ia_sniper, ETriggerEvent::Completed, this, &ATPSPlayer::SniperAim);
+	
 	}
 
+}
+
+void ATPSPlayer::InputFire(const struct FInputActionValue& inputValue)
+{
+	if (bUsingGrenade)
+	{
+		FTransform firePosition = gunMeshComp->GetSocketTransform(TEXT("FirePosition"));
+		GetWorld()->SpawnActor<ABullet>(bulletFactory, firePosition);
+	}
+	else
+	{
+		FVector startPos = tpsCamComp->GetComponentLocation();
+		FVector endPos = tpsCamComp->GetComponentLocation() + tpsCamComp->GetForwardVector() * 5000;
+		FHitResult hitInfo;
+		FCollisionQueryParams params;
+		params.AddIgnoredActor(this);
+		
+		bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
+		
+		if (bHit)
+		{
+			FTransform bulletTrans;
+			bulletTrans.SetLocation(hitInfo.ImpactPoint);
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,bulletEffectFactory, hitInfo.ImpactPoint);
+			
+			auto hitComp = hitInfo.GetComponent();
+			
+			if (hitComp && hitComp->IsSimulatingPhysics())
+			{
+				FVector dir = (endPos - startPos).GetSafeNormal();
+				FVector force = dir * hitComp->GetMass() * 500000;
+				
+				hitComp->AddForceAtLocation(force, hitInfo.ImpactPoint);
+			}
+		}
+	}
 }
 
 void ATPSPlayer::Input_Look(const FInputActionValue& inputValue)
@@ -108,5 +191,50 @@ void ATPSPlayer::Input_Move(const FInputActionValue& inputValue)
 	}
 }
 
+void ATPSPlayer::WPChange(const FInputActionValue& inputValue)
+{
+	if (bUsingGrenade)
+	{
+		ChangeToSniperGun(inputValue);
+	}
+	else
+	{
+		ChangeToGrenadeGun(inputValue);
+	}
+	bUsingGrenade = !bUsingGrenade;
+}
+
+void ATPSPlayer::ChangeToGrenadeGun(const FInputActionValue& inputValue)
+{
+	sniperGunComp->SetVisibility(false);
+	gunMeshComp->SetVisibility(true);
+}
+
+void ATPSPlayer::ChangeToSniperGun(const FInputActionValue& inputValue)
+{
+	sniperGunComp->SetVisibility(true);
+	gunMeshComp->SetVisibility(false);
+}
+
+void ATPSPlayer::SniperAim(const FInputActionValue& inputValue)
+{
+	if (bUsingGrenade)
+	{
+		return;
+	}
+	if (bSniperAim == false)
+	{
+		bSniperAim = true;
+		
+		_sniperUI->AddToViewport();
+		tpsCamComp->SetFieldOfView(45.0f);
+	}
+	else
+	{
+		bSniperAim = false;
+		_sniperUI->RemoveFromParent();
+		tpsCamComp->SetFieldOfView(90.0f);
+	}
+}
 
 

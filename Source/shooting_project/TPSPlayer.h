@@ -27,7 +27,7 @@ public:
 public:
 	UPROPERTY(VisibleAnywhere, Category=Camera)
 	class USpringArmComponent* springArmComp;
-	UPROPERTY(VisibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class UCameraComponent* tpsCamComp;
 
 public:
@@ -42,6 +42,49 @@ public:
 
 	void Input_Look(const struct FInputActionValue& inputValue);
 
-
+	UPROPERTY(EditAnywhere, Category = "Input")
+	float MeshVisibleDistance =100;
+	
+	UPROPERTY(VisibleAnywhere, Category = "GumMesh")
+	TObjectPtr<class USkeletalMeshComponent> gunMeshComp;
+	
+	UPROPERTY(EditDefaultsOnly, Category=BulletFactory)
+	TSubclassOf<class ABullet> bulletFactory;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> ia_Fire;
+	void InputFire(const struct FInputActionValue& inputValue);
+	
+	UPROPERTY(VisibleAnywhere, Category = GumMesh)
+	TObjectPtr<class USkeletalMeshComponent> sniperGunComp;
+	
+	UPROPERTY(VisibleAnywhere, Category = GunMesh)
+	TObjectPtr<class USkeletalMeshComponent> gunComp;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> ia_WPchange;
+	
+	bool bUsingGrenade = true;
+	
+	void WPChange(const struct FInputActionValue& inputValue);
+	void ChangeToGrenadeGun(const struct FInputActionValue& inputValue);
+	void ChangeToSniperGun(const struct FInputActionValue& inputValue);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> ia_sniper;
+	
+	void SniperAim(const struct FInputActionValue& inputValue);
+	
+	bool bSniperAim = false;
+	
+	UPROPERTY(EditDefaultsOnly, Category = SniperUI)
+	TSubclassOf<class UUserWidget> sniperUIFactory;
+	
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> _sniperUI;
+	
+	UPROPERTY(EditAnywhere, Category = BulletEffect)
+	TObjectPtr<class UNiagaraSystem> bulletEffectFactory;
+	
 
 };

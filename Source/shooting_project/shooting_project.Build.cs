@@ -10,7 +10,7 @@ public class shooting_project : ModuleRules
 
         PublicIncludePaths.AddRange(
            new string[] {
-                        "shooting_project" // ¿©·¯ºÐ ÇÁ·ÎÁ§Æ® ÀÌ¸§
+                        "shooting_project" // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì¸ï¿½
            }
        );
 
@@ -21,7 +21,7 @@ public class shooting_project : ModuleRules
 
         PublicDependencyModuleNames.AddRange(
 			new string[] {
-							"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" 
+							"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Niagara"
 							});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
