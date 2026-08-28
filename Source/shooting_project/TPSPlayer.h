@@ -64,7 +64,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<class UInputAction> ia_WPchange;
 	
-	bool bUsingGrenade = true;
+	bool bUsingGrenade = false;
 	
 	void WPChange(const struct FInputActionValue& inputValue);
 	void ChangeToGrenadeGun(const struct FInputActionValue& inputValue);
