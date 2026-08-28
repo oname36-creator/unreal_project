@@ -86,5 +86,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = BulletEffect)
 	TObjectPtr<class UNiagaraSystem> bulletEffectFactory;
 	
+	UPROPERTY(EditAnywhere, Category = SniperUI)
+	TSubclassOf<class UUserWidget> crosshairUIFactory;
+	
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> _crosshairUI;
 
 };

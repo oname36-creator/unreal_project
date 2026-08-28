@@ -79,6 +79,10 @@ void ATPSPlayer::BeginPlay()
 	}
 	_sniperUI = CreateWidget(GetWorld(), sniperUIFactory);
 	bUsingGrenade =false;
+	
+	
+	_crosshairUI = CreateWidget(GetWorld(), crosshairUIFactory);
+	_crosshairUI->AddToViewport();
 	ChangeToSniperGun(FInputActionValue());
 }
 
@@ -228,12 +232,16 @@ void ATPSPlayer::SniperAim(const FInputActionValue& inputValue)
 		
 		_sniperUI->AddToViewport();
 		tpsCamComp->SetFieldOfView(45.0f);
+		
+		_crosshairUI->RemoveFromParent();
 	}
 	else
 	{
 		bSniperAim = false;
 		_sniperUI->RemoveFromParent();
 		tpsCamComp->SetFieldOfView(90.0f);
+		
+		_crosshairUI->AddToViewport();
 	}
 }
 
