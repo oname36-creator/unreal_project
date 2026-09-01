@@ -12,6 +12,8 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
+#include "EnemyFSM.h"
+#include "shooting_project.h"
 
 // Sets default values
 ATPSPlayer::ATPSPlayer()
@@ -139,7 +141,8 @@ void ATPSPlayer::InputFire(const struct FInputActionValue& inputValue)
 		FCollisionQueryParams params;
 		params.AddIgnoredActor(this);
 		
-		bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECC_Visibility, params);
+		//bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, ECollisionChannel::ECC_GameTraceChannel1, params);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(hitInfo, startPos, endPos, WEAPON_TRACE_CHANNEL, params);
 		
 		if (bHit)
 		{
@@ -155,6 +158,13 @@ void ATPSPlayer::InputFire(const struct FInputActionValue& inputValue)
 				FVector force = dir * hitComp->GetMass() * 500000;
 				
 				hitComp->AddForceAtLocation(force, hitInfo.ImpactPoint);
+			}
+			
+			auto enemy = hitInfo.GetActor()->GetDefaultSubobjectByName(TEXT("FSM"));
+			if (enemy)
+			{
+				auto enemyFSM = Cast<UEnemyFSM>(enemy);
+				enemyFSM->OnDamageProcess();
 			}
 		}
 	}
