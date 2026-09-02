@@ -14,12 +14,15 @@
 #include "NiagaraFunctionLibrary.h"
 #include "EnemyFSM.h"
 #include "shooting_project.h"
+#include "Public/MyAniminstance.h"
 
 // Sets default values
 ATPSPlayer::ATPSPlayer()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempMesh(TEXT("/Game/Assets/ThirdPersonTemplate/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"));
 	if (TempMesh.Succeeded())
@@ -43,25 +46,23 @@ ATPSPlayer::ATPSPlayer()
 	bUseControllerRotationYaw = true;
 	
 	gunMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMeshComp"));
-	gunMeshComp->SetupAttachment(GetMesh());
+	gunMeshComp->SetupAttachment(GetMesh(),TEXT("hand_rSocket"));
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempGunMesh(TEXT("'SkeletalMesh'/Game/Assets/MilitaryWeapSilver/Weapons/Assault_Rifle_A.Assault_Rifle_A"));
 	
 	if (TempGunMesh.Succeeded())
 	{
 		gunMeshComp->SetSkeletalMesh(TempGunMesh.Object);
-		gunMeshComp->SetRelativeLocation(FVector(-14, 11, 138));
+		//gunMeshComp->SetRelativeLocation(FVector(-14, 11, 138));
 	}
 	
 	sniperGunComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SniperGunComp"));
-	
-	sniperGunComp->SetupAttachment(GetMesh());
-	
+	sniperGunComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempSniperMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/MilitaryWeapSilver/Weapons/Sniper_Rifle_A.Sniper_Rifle_A'"));
 	if (TempSniperMesh.Succeeded())
 	{
 		sniperGunComp->SetSkeletalMesh(TempSniperMesh.Object);
 		
-		sniperGunComp->SetRelativeLocation(FVector(-22, 31, 128));
+		//sniperGunComp->SetRelativeLocation(FVector(-22, 31, 128));
 	}
 }
 
@@ -128,6 +129,8 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 void ATPSPlayer::InputFire(const struct FInputActionValue& inputValue)
 {
+	auto anim = Cast<UMyAnimInstance>(GetMesh()->GetAnimInstance());
+	anim->PlayAttackAnim();
 	if (bUsingGrenade)
 	{
 		FTransform firePosition = gunMeshComp->GetSocketTransform(TEXT("FirePosition"));

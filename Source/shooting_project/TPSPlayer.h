@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "TPSPlayer.generated.h"
 
+
 UCLASS()
 class SHOOTING_PROJECT_API ATPSPlayer : public ACharacter
 {
