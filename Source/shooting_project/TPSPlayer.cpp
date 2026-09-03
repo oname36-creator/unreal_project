@@ -15,6 +15,7 @@
 #include "EnemyFSM.h"
 #include "shooting_project.h"
 #include "Public/MyAniminstance.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ATPSPlayer::ATPSPlayer()
@@ -71,6 +72,8 @@ void ATPSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+	
 	auto pc = Cast<APlayerController>(Controller);
 	if (pc)
 	{
@@ -122,7 +125,8 @@ void ATPSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		PlayerInput->BindAction(ia_WPchange, ETriggerEvent::Started, this, &ATPSPlayer::WPChange);
 		PlayerInput->BindAction(ia_sniper, ETriggerEvent::Started, this, &ATPSPlayer::SniperAim);
 		PlayerInput->BindAction(ia_sniper, ETriggerEvent::Completed, this, &ATPSPlayer::SniperAim);
-	
+		PlayerInput->BindAction(ia_Run, ETriggerEvent::Started, this, &ATPSPlayer::InputRun);
+		PlayerInput->BindAction(ia_Run, ETriggerEvent::Completed, this, &ATPSPlayer::InputRun);
 	}
 
 }
@@ -256,6 +260,21 @@ void ATPSPlayer::SniperAim(const FInputActionValue& inputValue)
 		
 		_crosshairUI->AddToViewport();
 	}
+}
+
+void ATPSPlayer::InputRun()
+{
+	auto movement = GetCharacterMovement();
+	
+	if (movement->MaxWalkSpeed > walkSpeed)
+	{
+		movement->MaxWalkSpeed = walkSpeed;
+	}
+	else
+	{
+		movement->MaxWalkSpeed = runSpeed;
+	}
+	
 }
 
 

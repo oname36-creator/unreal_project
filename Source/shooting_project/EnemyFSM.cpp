@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "shooting_project.h"
 #include "Components/CapsuleComponent.h"
+#include "Public/EnemyAnim.h"
 
 // Sets default values for this component's properties
 UEnemyFSM::UEnemyFSM()
@@ -30,7 +31,7 @@ void UEnemyFSM::BeginPlay()
 	
 	me = Cast<AEnemy>(GetOwner());
 	// ...
-	
+	anim = Cast<UEnemyAnim>(me->GetMesh()->GetAnimInstance());
 }
 
 
@@ -71,6 +72,8 @@ void UEnemyFSM::IdleState()
 	{
 		State = EEnemyState::Move;
 		currentTime = 0;
+		
+		anim->animState = State;
 	}
 }
 
@@ -84,6 +87,10 @@ void UEnemyFSM::MoveState()
 	if (dir.Size() < attackRange)
 	{
 		State = EEnemyState::Attack;
+		
+		anim->animState = State;
+		anim->bAttackPlay = true;
+		currentTime = attackDelayTime;
 	}
 }
 
@@ -93,15 +100,27 @@ void UEnemyFSM::AttackState()
 	
 	if (currentTime > attackDelayTime)
 	{
+		
 		PRINT_LOG(TEXT("Attack!!!"));
 		currentTime = 0;
+		
+		anim->bAttackPlay = true;
 	}
 	
 	float distatnce = FVector::Distance(target->GetActorLocation(), me->GetActorLocation());
 	
 	if (distatnce > attackRange)
 	{
+		GetWorld()->GetTimerManager().SetTimer(
+	OnAttackDelayTimer,
+	FTimerDelegate::CreateLambda([this]()
+	{
+	}),
+	OnAttackDelay,
+	false 
+	);
 		State = EEnemyState::Move;
+		anim->animState = State;
 	}
 }
 void UEnemyFSM::OnDamageProcess()
@@ -110,14 +129,26 @@ void UEnemyFSM::OnDamageProcess()
 	if (hp > 0)
 	{
 		State = EEnemyState::Damage;
+		
+		currentTime =0;
+		
+		int32 index = FMath::RandRange(0, 1);
+		FString sectionName = FString::Printf(TEXT("Damge%d"), index);
+		anim->PlayDamageAnim(FName(*sectionName));
 	}
 	else
 	{
 		State = EEnemyState::Die;
 		
 		me->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
+		anim->PlayDamageAnim(TEXT("Die"));
 	}
+	anim->animState = State;
 }
+
+
+
 void UEnemyFSM::DamageState()
 {
 	currentTime += GetWorld()->DeltaTimeSeconds;
@@ -126,11 +157,18 @@ void UEnemyFSM::DamageState()
 	{
 		State= EEnemyState::Idle;
 		currentTime = 0;
+		
+		anim->animState = State;
 	}
 }
 
 void UEnemyFSM::DieState()
 {
+	if (anim->bDieDone == false)
+	{
+		return;
+	}
+	
 	FVector P0 = me->GetActorLocation();
 	FVector vt = FVector::DownVector * dieSpeed * GetWorld()->DeltaTimeSeconds;
 	FVector P = P0 + vt;

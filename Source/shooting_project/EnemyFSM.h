@@ -75,4 +75,11 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = FSM)
 	float dieSpeed = 50.0f;
+	
+	UPROPERTY()
+	TObjectPtr <class UEnemyAnim> anim;
+	
+	UPROPERTY()
+	float OnAttackDelay = 2.0f;
+	FTimerHandle OnAttackDelayTimer;
 };

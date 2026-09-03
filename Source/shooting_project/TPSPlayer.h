@@ -92,5 +92,15 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<class UUserWidget> _crosshairUI;
-
+	
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)
+	float walkSpeed = 300;
+	
+	UPROPERTY(EditAnywhere, Category = PlayerSetting)
+	float runSpeed = 600;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> ia_Run;
+	
+	void InputRun();
 };

@@ -15,7 +15,7 @@ class SHOOTING_PROJECT_API UMyAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 public:
 	void NativeInitializeAnimation();
-	void NativeUpdateAnimation(float DeltaSeconds);
+	void NativeUpdateAnimation(float DeltaSeconds) override;
 	void PlayAttackAnim();
 
 public:
@@ -45,5 +45,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
 	TObjectPtr<class UAnimMontage> AttackAnimMontage;
 	
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool isInAir = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = PlayerAnim)
+	bool bisFire = false;
+	
+	UPROPERTY(EditDefaultsOnly, Category = PlayAnim)
+	float FireMotionTimer = 1.5f;
+	
+	FTimerHandle OnFireTimer;
 };

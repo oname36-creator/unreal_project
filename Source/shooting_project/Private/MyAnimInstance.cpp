@@ -40,10 +40,27 @@ void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		
 		// 방향 계산
 		Direction = CalculateDirection(Velocity, Character->GetActorRotation());
+		
+		
 	}
 }
 
 void UMyAnimInstance::PlayAttackAnim()
 {
+	bisFire = true; 
 	Montage_Play(AttackAnimMontage);
+	
+	if (GetWorld()->GetTimerManager().IsTimerActive(OnFireTimer))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(OnFireTimer);
+	}
+	
+	GetWorld()->GetTimerManager().SetTimer(OnFireTimer,
+		FTimerDelegate::CreateLambda([this]
+		{
+			bisFire = false;
+		}), 
+		FireMotionTimer,
+		false
+	);
 }
