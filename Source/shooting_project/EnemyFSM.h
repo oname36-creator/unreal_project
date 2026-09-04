@@ -79,7 +79,13 @@ public:
 	UPROPERTY()
 	TObjectPtr <class UEnemyAnim> anim;
 	
+	
 	UPROPERTY()
-	float OnAttackDelay = 2.0f;
-	FTimerHandle OnAttackDelayTimer;
+	TObjectPtr<class AAIController> ai;
+	
+	FVector randomPos;
+	bool GetRandomPositionInNavMesh(FVector centerLocation, float radius, FVector& dest);
+	
+	UPROPERTY(EditDefaultsOnly, Category = FSM)
+	float threshold = FMath::Cos(FMath::DegreesToRadians(30.0f)); 
 };
